@@ -32,13 +32,12 @@ mongoose.connect(mongoDB);
 
 // Get Mongoose to use the global promise library
 mongoose.Promise = global.Promise;
+
 //Get the default connection
 var db = mongoose.connection;
 
 //Bind connection to error event (to get notification of connection errors)
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-
-console.log('success?');
 
 let Schema = mongoose.Schema;
 
@@ -56,7 +55,8 @@ let Card = mongoose.model('CardList', cardSchema);
 
 parseCWBoard();
 
-
+// check db
+// findALlDb();
 
 // axios is nice because it returns json just as you'd expect 
 function parseCWBoard() {
@@ -83,7 +83,7 @@ function createTrelloCard(cwCardId, status, summary) {
 	// needs to go in to axios as a string not Number 
 	let stringCardId = cwCardId.toString();
 
-	// if cw id does not exist in the db together 
+	// if cw id does not exist in the db  
 	//    if the status for that cw id has changed 
 	//       then move the card in trello and update status in the db 
 	//    else 
@@ -101,16 +101,15 @@ function createTrelloCard(cwCardId, status, summary) {
 		keepFromSource: 'all',
 		key: trelloKey,
 		token: trelloToken
-	  })
-	  .then(response => {
+	})
+	.then(response => {
 		// this is the corresponding trello id card
 		// will need to update the db entry based on this new field 
 		createCard(response.data.id, cwCardId, status);
-	  })
-	  .catch(error => {
+	})
+		.catch(error => {
 		console.log(error);
-	  });
-
+	});
 }
 
 // make the instance for mongo db based on the model
@@ -125,7 +124,7 @@ function createCard(trelloCardId, cwCardId, status) {
 	});
 	card.save(function(err, card) {
 		if (err) return console.error(err);
-		// console.log(card.status);
+		console.log(card);
 	});
 }
 
