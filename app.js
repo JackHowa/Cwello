@@ -24,10 +24,27 @@ const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconn
 
 // mongo db stuff 
 const mongoose = require('mongoose');
+
+//Set up default mongoose connection
+const mongoDB = 'mongodb://localhost/my_database';
+
+mongoose.connect(mongoDB);
+
+// Get Mongoose to use the global promise library
+mongoose.Promise = global.Promise;
+//Get the default connection
+var db = mongoose.connection;
+
+//Bind connection to error event (to get notification of connection errors)
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
+
+console.log('success?');
+
 let Schema = mongoose.Schema;
 
 // define properties casted to SchemaTypes
 // may want to use ObjectId instead 
+// this is the model schema
 let cardSchema = new Schema({
 	trelloCardId: String,
 	cwCardId: String,
@@ -37,8 +54,9 @@ let cardSchema = new Schema({
 // // convert schema definition into a Model that's accessible 
 let Card = mongoose.model('CardList', cardSchema);
 
-// this is basically the runner thus far
 parseCWBoard();
+
+
 
 // axios is nice because it returns json just as you'd expect 
 function parseCWBoard() {
@@ -48,20 +66,33 @@ function parseCWBoard() {
 
 		// suppose I could map this with only values I need
 		// last value wasn't reading huh with <=
+		// don't need to return anything here just loop thru
+		// therefore for loop ok
 		for (let i = 0; i < tickets.length; i++) {
 			// need to check that an id for cw and trello doesn't exist already 
 			// if it does exist already, should I update it if the status has changed? 
+			let ticket = tickets[i];
 
-			createTrelloCard(tickets[i].id, tickets[i].status.name, tickets[i].summary);
+			createTrelloCard(ticket.id, ticket.status.name, ticket.summary);
 		}
 	}).catch(error => console.log(error));
 }
 
+// make a new card in trello upon startup
 function createTrelloCard(cwCardId, status, summary) {
 	// needs to go in to axios as a string not Number 
 	let stringCardId = cwCardId.toString();
 
+	// if cw id does not exist in the db together 
+	//    if the status for that cw id has changed 
+	//       then move the card in trello and update status in the db 
+	//    else 
+	//       then don't do anything 
+	// else 
+	//    then create that new trello card from cw 
+
 	// determine which list the card will go in 
+	// will need to make a better dictionary key check with matching
 	let boardId = status === 'Triage' ? openTrelloListId : inProgressTrelloListId;
 
 	axios.post('https://api.trello.com/1/cards', {
@@ -79,18 +110,49 @@ function createTrelloCard(cwCardId, status, summary) {
 	  .catch(error => {
 		console.log(error);
 	  });
+
 }
 
 // make the instance for mongo db based on the model
 function createCard(trelloCardId, cwCardId, status) {
+	let stringTrelloCardId = trelloCardId.toString(), 
+	stringCwCardId = cwCardId.toString();
+
 	let card = new Card({
-		cwCardId: cwCardId,
-		trelloCardId: trelloCardId,
+		cwCardId: stringCwCardId,
+		trelloCardId: stringTrelloCardId,
 		status: status
 	});
-	console.log(card);
+	card.save(function(err, card) {
+		if (err) return console.error(err);
+		// console.log(card.status);
+	});
 }
 
+// // test to make sure things are saving properly
+
+
+// quick sanity check
+function findALlDb() {
+	console.log("checking all entries");
+	Card.find({}, 'status', (err, cards) => {
+		if(err){
+			console.log(err);
+		} else{
+			// check on the last one just to make sure
+			console.log('list of statuses', cards.length, cards[0].status);
+		}
+	})
+
+	// console.log("clearing all entries");
+	// Card.remove({}, (err, cards) => {
+	// 	if (err) {
+	// 		console.log(err)
+	// 	} else {
+	// 		console.log("deleting all");
+	// 	}
+	// })
+}
 
 // will need to utilize express later for listening for web hooks or starting
 // const express = require('express');
