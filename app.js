@@ -56,6 +56,9 @@ async function createWebhook() {
 // clearDb();
 
 // this is the basic runner 
+// while loop 
+// sleep for a bit u
+// until true 
 run();
 
 async function run() {
@@ -211,7 +214,7 @@ async function moveTrelloCard(trelloCardId = '5af9fc0efc1caef03cd37aa4', status)
 	}
 }
 
-async function updateCardInDb(cwCardId, status) {
+function updateCardInDb(cwCardId, status) {
 	let stringCwCardId = cwCardId.toString();
 
 	let query = { cwCardId: stringCwCardId };
