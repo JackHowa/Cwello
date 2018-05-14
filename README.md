@@ -14,13 +14,20 @@ Next, MongoDB needs to be setup. It can be downloaded via Homebrew: `brew update
 
 To start up MongoDB via Homebrew: `mongod --dbpath /usr/local/var/mongodb`. 
 
-The app can then be ran via `node app.js` on a different terminal window.
+The app can then be ran via `npm start` on a different terminal window.
 
 Please look at code snippets and progress on -- meta alert -- Trello: [Trello join page](https://trello.com/invite/b/S4Vj9EhG/be3f9aea6c3ce25b1255117d375d8b5c/cwello).
+
+### Todo 
+* auth with trello 
+* dotenv explainer 
+* ngrok explainer 
 
 ## Results 
 
 * As an employee, I can see the latest ConnectWise tickets sorted by Triage or not
+* As an employee, my trello board will reflect CW tickets based on whether they're Triage status or not
+* As an admin, I can see in the background if my trello board has changed using a Trello webhook 
 * As an admin, I can take in Trello boards, lists, and cards information 
 * As an admin, I can take in ConnectWise tickets and its status info for a particular board over a period of time 
 
@@ -32,3 +39,5 @@ Please look at code snippets and progress on -- meta alert -- Trello: [Trello jo
 * [Express](https://expressjs.com/) - web framework for Node.js
 * [MongoDB](https://www.mongodb.com/) - NoSQL database
 * [Mongoose](http://mongoosejs.com/) - MongoDB object modeling for Node.js
+* [Ngrok](https://ngrok.com/) - A public url for webhooks 
+* [Body-Parser](https://github.com/expressjs/body-parser) - Node.js body parsing middleware
