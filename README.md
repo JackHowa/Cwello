@@ -21,7 +21,7 @@ Please look at code snippets and progress on -- meta alert -- Trello: [Trello jo
 ### Todo 
 * auth with trello 
 * dotenv explainer 
-* ngrok explainer 
+* ngrok explainer
 
 ## Results 
 
