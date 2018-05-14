@@ -33,24 +33,24 @@ const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconn
 // new ngrok will create a different callback url 
 
 // createWebhook();
-// async function createWebhook() {
-// 	try {
-// 		// use board id to listen
-// 		// http://53f47b43.ngrok.io
-// 		const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
-// 			description: 'Listen for board changes',
-// 			callbackURL: 'https://c70f1dd7.ngrok.io/board-change',
-// 			idModel: trelloServiceBoard,
-// 			key: trelloKey,
-// 			token: trelloToken,
-// 			active: true
-// 		});
-// 		console.log("Board web hook " + boardWebhook);
-// 	} catch (err) {
-// 		console.log('Something went wrong when creating webhook');
-// 		console.error(err);
-// 	}
-// }
+async function createWebhook() {
+	try {
+		// use board id to listen
+		// http://53f47b43.ngrok.io
+		const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
+			description: 'Listen for board changes',
+			callbackURL: 'http://023a39e9.ngrok.io/board-change',
+			idModel: trelloServiceBoard,
+			key: trelloKey,
+			token: trelloToken,
+			active: true
+		});
+		console.log("Board web hook " + boardWebhook);
+	} catch (err) {
+		console.log('Something went wrong when creating webhook');
+		console.error(err);
+	}
+}
 
 // call clear db to empty mongodb db 
 // clearDb();
@@ -80,18 +80,20 @@ async function run() {
 			// don't make a new ticket
 			console.log('ticket already exists');
 
+			// need to hardcode the change of a cw board ticket 
 			// will be renaming these params on the other side to directly match in db
 			const [statusChanged] = await Promise.all([cwTicketStatusChanged(tickets[i].id, tickets[i].status.name)]);
+
 			// if the status for that cw id has changed 
 			if (statusChanged === true) {
-				// then move the card in trello 
-				// update status in the db 
-
 				// need to find the db for matching trello id and db's status 
-				// need to hardcode the change of a cw board ticket 
+				// update status in the db 
+				const [changedTicket] = await Promise.all([updateCardInDb(tickets[i].id, tickets[i].status.name)]);
+				console.log(changedTicket.trelloCardId);
 
+				// then move the card in trello
 				// hardcoding moving the change back to open 
-				// moveTrelloCard(trelloCardId, targetTrelloListId);
+				moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
 			}
 		} else {
 			// then create that new trello card from cw 
@@ -109,7 +111,7 @@ async function run() {
 // need to create the auth token for this to work in the cw board url
 async function parseCWBoard() {
 	console.log(olderCwServiceBoard);
-	const cwPromise = axios.get(olderCwServiceBoard);
+	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
 
 	return cwBoard.data;
@@ -192,17 +194,37 @@ function createCard(trelloCardId, cwCardId, status) {
 }
 
 // update trello card list based on change
-async function moveTrelloCard(trelloCardId = '5af9bdb92aa3910bd7a42d38', targetTrelloListId = openTrelloListId) {
+async function moveTrelloCard(trelloCardId = '5af9fc0efc1caef03cd37aa4', status) {
+	let targetList = status === 'Triage' ? openTrelloListId : inProgressTrelloListId;
+
 	try {
 		let trelloCardPromise = axios.put('https://api.trello.com/1/cards/' + trelloCardId, {
-			idList: targetTrelloListId,
+			idList: targetList,
 			key: trelloKey,
 			token: trelloToken
 		});
 		const [trelloCard] = await Promise.all([trelloCardPromise]);
 		console.log(trelloCard.data);
+		console.log('Moved ticket');
 	} catch (err) {
 		console.log(err)
+	}
+}
+
+async function updateCardInDb(cwCardId, status) {
+	let stringCwCardId = cwCardId.toString();
+
+	let query = { cwCardId: stringCwCardId };
+	let update = { status: status };
+	return Card.findOneAndUpdate(query, update, updateAndFindCallback);
+}
+
+function updateAndFindCallback(err, documents) {
+	if (err) {
+		console.log("Error: " + err);
+	} else {
+		// console.log(documents);
+		return documents;
 	}
 }
 
