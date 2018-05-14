@@ -1,17 +1,18 @@
 "use strict";
 
-// key values hidden using .env file -- do not commit
-// via https://github.com/motdotla/dotenv
-require('dotenv').config();
-
 let express = require('express'),
 	app = express(),
 	bodyParser = require('body-parser'),
+	dotenv = require('dotenv'),
 	trelloKey = process.env.TRELLO_API_KEY,
 	trelloToken = process.env.TRELLO_API_TOKEN,
 	connectWiseApiKey = process.env.CW_API_KEY,
 	axios = require('axios'),
 	mongoose = require('mongoose');
+
+// key values hidden using .env file -- do not commit
+// via https://github.com/motdotla/dotenv
+dotenv.config();
 
 // read the payload from the webhook
 app.use(bodyParser.json());
@@ -29,7 +30,7 @@ const olderCwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.m
 
 const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
 
-//Set up default mongoose connection
+// Set up default mongoose connection
 const mongoDB = 'mongodb://localhost/my_database';
 
 mongoose.connect(mongoDB);
@@ -37,10 +38,10 @@ mongoose.connect(mongoDB);
 // Get Mongoose to use the global promise library
 mongoose.Promise = global.Promise;
 
-//Get the default connection
+// Get the default connection
 var db = mongoose.connection;
 
-//Bind connection to error event (to get notification of connection errors)
+// Bind connection to error event (to get notification of connection errors)
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 let Schema = mongoose.Schema;
@@ -56,6 +57,9 @@ let cardSchema = new Schema({
 
 // // convert schema definition into a Model that's accessible 
 let Card = mongoose.model('CardList', cardSchema);
+
+// this should be run on startup or upon a new ngrok server 
+// new ngrok will create a different callback url 
 
 // createWebhook();
 // async function createWebhook() {
@@ -77,7 +81,10 @@ let Card = mongoose.model('CardList', cardSchema);
 // 	}
 // }
 
+// call clear db to empty mongodb db 
 // clearDb();
+
+// this is the basic runner 
 run();
 
 async function run() {
@@ -127,14 +134,17 @@ async function run() {
 	console.log("done making tickets");
 }
 
-
+// take in the range of the cw board 
+// need to create the auth token for this to work in the cw board url
 async function parseCWBoard() {
-	const cwPromise = axios.get(olderCwServiceBoard);
+	const cwPromise = axios.get(cwBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
 
 	return cwBoard.data;
 }
 
+// check for whether cw card exists already 
+// will return a true/false for a count 
 async function cwTicketAlreadyExists(cwCardId) {
 	try {
 		// need to find if there's more than 1 match 
@@ -149,6 +159,8 @@ async function cwTicketAlreadyExists(cwCardId) {
 	}
 }
 
+// will return a true false
+// this is an additional check for whether the cw id AND its status have changed
 async function cwTicketStatusChanged(cwCardId, status) {
 	try {
 		// need to find if there's more than 1 match 
@@ -170,6 +182,7 @@ async function cwTicketStatusChanged(cwCardId, status) {
 	}
 }
 
+// this is if the card in the cw isn't represented in trello yet
 async function createNewTrelloCard(cwCardId, status, summary) {
 	// needs to be string for post
 	let stringCardId = cwCardId.toString();
@@ -221,7 +234,7 @@ async function moveTrelloCard(trelloCardId = '5af9bdb92aa3910bd7a42d38', targetT
 	}
 }
 
-
+// to ensure unhandled promises return informative errors
 process.on('unhandledRejection', error => {
 	console.log('unhandledRejection', error);
 });
@@ -241,6 +254,7 @@ function findALlDb() {
 
 }
 
+// empty out database in mongo db 
 function clearDb() {
 	console.log("clearing all entries");
 	Card.remove({}, (err, cards) => {
@@ -262,9 +276,10 @@ app.post('/board-change', (req, res) => {
 	res.status(200).send('board change');
 	console.log('board change post');
 	console.log(req.body.action);
-
 });
 
+// this is to ensure that the webhook can be created
+// trello looks for a good callback url
 app.get('/board-change', (req, res) => {
 	res.status(200).send('board change');
 	console.log("board get");
