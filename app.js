@@ -11,7 +11,7 @@ let express = require('express'),
 	trelloToken = process.env.TRELLO_API_TOKEN,
 	connectWiseApiKey = process.env.CW_API_KEY,
 	axios = require('axios'),
-	mongoose = require('mongoose');
+	Card = require('./models/Card');
 
 // read the payload from the webhook
 app.use(bodyParser.json());
@@ -28,34 +28,6 @@ const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
 const olderCwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-04-20T00:00:00Z]';
 
 const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
-
-// Set up default mongoose connection
-const mongoDB = 'mongodb://localhost/my_database';
-
-mongoose.connect(mongoDB);
-
-// Get Mongoose to use the global promise library
-mongoose.Promise = global.Promise;
-
-// Get the default connection
-var db = mongoose.connection;
-
-// Bind connection to error event (to get notification of connection errors)
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-
-let Schema = mongoose.Schema;
-
-// define properties casted to SchemaTypes
-// may want to use ObjectId instead 
-// this is the model schema
-let cardSchema = new Schema({
-	trelloCardId: String,
-	cwCardId: String,
-	status: String
-});
-
-// // convert schema definition into a Model that's accessible 
-let Card = mongoose.model('CardList', cardSchema);
 
 // this should be run on startup or upon a new ngrok server 
 // new ngrok will create a different callback url 
