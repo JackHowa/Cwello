@@ -1,18 +1,17 @@
 "use strict";
 
+// key values hidden using .env file -- do not commit
+// via https://github.com/motdotla/dotenv
+require('dotenv').config();
+
 let express = require('express'),
 	app = express(),
 	bodyParser = require('body-parser'),
-	dotenv = require('dotenv'),
 	trelloKey = process.env.TRELLO_API_KEY,
 	trelloToken = process.env.TRELLO_API_TOKEN,
 	connectWiseApiKey = process.env.CW_API_KEY,
 	axios = require('axios'),
 	mongoose = require('mongoose');
-
-// key values hidden using .env file -- do not commit
-// via https://github.com/motdotla/dotenv
-dotenv.config();
 
 // read the payload from the webhook
 app.use(bodyParser.json());
@@ -137,7 +136,8 @@ async function run() {
 // take in the range of the cw board 
 // need to create the auth token for this to work in the cw board url
 async function parseCWBoard() {
-	const cwPromise = axios.get(cwBoard);
+	console.log(olderCwServiceBoard);
+	const cwPromise = axios.get(olderCwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
 
 	return cwBoard.data;
