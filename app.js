@@ -40,48 +40,55 @@ const olderCwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.m
 
 const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
 
-// this should be run on startup or upon a new ngrok server 
-// new ngrok will create a different callback url 
+// this should be run on startup or upon a new ngrok server
+// new ngrok will create a different callback url
+async function runner() {
+  await clearDb();
+  await run();
+  await createWebhook();
 
-// createWebhook();
-async function createWebhook() {
-	try {
-		// use board id to listen
-		// http://53f47b43.ngrok.io
-		const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
-			description: 'Listen for board changes',
-			callbackURL: 'http://023a39e9.ngrok.io/board-change',
-			idModel: trelloServiceBoard,
-			key: trelloKey,
-			token: trelloToken,
-			active: true
-		});
-		console.log("Board web hook " + boardWebhook);
-	} catch (err) {
-		console.log('Something went wrong when creating webhook');
-		console.error(err);
-	}
+  while (true) {
+      await sleep(5000);
+      await run();
+  }
 }
 
-// call clear db to empty mongodb db 
-// clearDb();
+// sleep time expects milliseconds
+function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
 
-// this is the basic runner 
-// while loop 
-// sleep for a bit u
-// until true 
-run();
+runner();
+
+async function createWebhook() {
+  try {
+    // use board id to listen
+    // http://53f47b43.ngrok.io
+    const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
+      description: 'Listen for board changes',
+      callbackURL: 'https://480ce67a.ngrok.io/board-change',
+      idModel: trelloServiceBoard,
+      key: trelloKey,
+      token: trelloToken,
+      active: true
+    });
+    console.log("Board web hook " + boardWebhook);
+  } catch (err) {
+    console.log('Something went wrong when creating webhook');
+    console.error(err);
+  }
+}
 
 async function run() {
-	const tickets = await parseCWBoard();
-	// console.log(tickets);
-	// if cw id does not exist in the db  
-	//    if the status for that cw id has changed 
-	//       then move the card in trello and update status in the db 
-	//    else 
-	//       then don't do anything 
-	// else 
-	//    then create that new trello card from cw 
+  const tickets = await parseCWBoard();
+  // console.log(tickets);
+  // if cw id does not exist in the db
+  //    if the status for that cw id has changed
+  //       then move the card in trello and update status in the db
+  //    else
+  //       then don't do anything
+  // else
+  //    then create that new trello card from cw
 
 	for (let i = 0; i < tickets.length; i++) {
 		const [ticketExists] = await Promise.all([cwTicketAlreadyExists(tickets[i].id)]);
@@ -124,7 +131,6 @@ async function run() {
 // take in the range of the cw board 
 // need to create the auth token for this to work in the cw board url
 async function parseCWBoard() {
-	console.log(olderCwServiceBoard);
 	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
 
@@ -263,15 +269,19 @@ function findALlDb() {
 }
 
 // empty out database in mongo db 
-function clearDb() {
-	console.log("clearing all entries");
-	Card.remove({}, (err, cards) => {
-		if (err) {
-			console.log(err)
-		} else {
-			console.log("deleting all");
-		}
-	})
+async function clearDb() {
+  console.log("clearing all entries");
+  let query = Card.remove({});
+  query.exec(); // returns promise
+
+
+	// Card.remove({}, (err, cards) => {
+	// 	if (err) {
+	// 		console.log(err)
+	// 	} else {
+	// 		console.log("deleting all");
+	// 	}
+	// })
 }
 
 // express ability to listen for webhook changes stub
