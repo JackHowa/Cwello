@@ -14,15 +14,16 @@ let express = require('express'),
     Card = require('./models/Card');
 
 // currently no way of adding to this list programmatically
-const statusLists = [
-  'Triage',
-  'Queued',
-  'In Progress',
-  'On Hold',
-  'Internal Review',
-  'Client Review',
-  'No Longer Needed',
-  'Resolved'];
+// hardcoded
+let statusLists = [
+  { 'name': 'Triage', 'idList': '5afa40c2e53e1adfa38698ed' },
+  { 'name': 'Queued', 'idList': '5afa40c52f74e21b2f89353f' },
+  { 'name': 'In Progress', 'idList': '5afa40c983304f3465ade176' },
+  { 'name': 'On Hold', 'idList': '5afa40cdc8ad4c1755fd5e96' },
+  { 'name': 'Internal Review', 'idList': '5afa40d124a895225d845db3' },
+  { 'name': 'Client Review', 'idList': '5afa40d5d8f556a7a53d7f21' },
+  { 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852' },
+  { 'name': 'Resolved', 'idList': '5afa40da3be986feaace8858' }];
 
 // read the payload from the webhook
 app.use(bodyParser.json());
@@ -39,6 +40,7 @@ const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
 const olderCwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-04-20T00:00:00Z]';
 
 const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
+
 
 // this should be run on startup or upon a new ngrok server
 // new ngrok will create a different callback url
