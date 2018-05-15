@@ -25,12 +25,13 @@ let statusLists = [
   { 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852' },
   { 'name': 'Resolved', 'idList': '5afa40da3be986feaace8858' }];
 
+function matchListNameithIdList(status) {
+	let targetListObject = statusLists.find(listObject => listObject.name === status);
+	return targetListObject.idList;
+}
+
 // read the payload from the webhook
 app.use(bodyParser.json());
-
-// trello info 
-const inProgressTrelloListId = '5af5c45c81c07bd0e39b2ad4';
-const openTrelloListId = '5af5b98846ccb9a5c0cfd3ba';
 
 // url: https://trello.com/b/l8Qe2St0/cwello-test
 const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
@@ -185,11 +186,11 @@ async function createNewTrelloCard(cwCardId, status, summary) {
 
 	// determine which list the card will go in 
 	// will need to make a better dictionary key check with matching
-	let boardId = status === 'Triage' ? openTrelloListId : inProgressTrelloListId;
+	let idList = matchListNameithIdList(status);
 
 	let trelloCardPromise = axios.post('https://api.trello.com/1/cards', {
 		name: summary,
-		idList: boardId,
+		idList: idList,
 		keepFromSource: 'all',
 		key: trelloKey,
 		token: trelloToken
@@ -217,7 +218,7 @@ function createCard(trelloCardId, cwCardId, status) {
 
 // update trello card list based on change
 async function moveTrelloCard(trelloCardId = '5af9fc0efc1caef03cd37aa4', status) {
-	let targetList = status === 'Triage' ? openTrelloListId : inProgressTrelloListId;
+	let targetList = matchListNameithIdList(status);
 
 	try {
 		let trelloCardPromise = axios.put('https://api.trello.com/1/cards/' + trelloCardId, {
