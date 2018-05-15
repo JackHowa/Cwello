@@ -188,8 +188,12 @@ async function createNewTrelloCard(cwCardId, status, summary) {
 	// will need to make a better dictionary key check with matching
 	let idList = matchListNameithIdList(status);
 
+	// entrypoints via cw https://developer.connectwise.com/Manage/Hosted_APIs/URL_Entry_Points
+	let cwEntryPoint = `https://na.myconnectwise.net/v4_6_release/services/system_io/router/openrecord.rails?locale=en_US&recordType=ServiceFv&recid=${cwCardId}&companyName=realnets`;
+
 	let trelloCardPromise = axios.post('https://api.trello.com/1/cards', {
 		name: `${stringCardId}: ${summary}`,
+		desc: `Access Ticket: ${cwEntryPoint}`,
 		idList: idList,
 		keepFromSource: 'all',
 		key: trelloKey,
