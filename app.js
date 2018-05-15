@@ -189,7 +189,7 @@ async function createNewTrelloCard(cwCardId, status, summary) {
 	let idList = matchListNameithIdList(status);
 
 	let trelloCardPromise = axios.post('https://api.trello.com/1/cards', {
-		name: summary,
+		name: `${stringCardId}: ${summary}`,
 		idList: idList,
 		keepFromSource: 'all',
 		key: trelloKey,
