@@ -46,18 +46,33 @@ const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconn
 // this should be run on startup or upon a new ngrok server
 // new ngrok will create a different callback url
 async function runner() {
-  await clearDb();
-  await run();
-  await createWebhook();
+	// cosmetic change on the front-end of clearing the board
+	archiveListsTickets(statusLists);
+	await clearDb();
+	await run();
+	await createWebhook();
 
-  while (true) {
-      await sleep(5000);
-      await run();
-  }
+	while (true) {
+		await sleep(5000);
+		await run();
+	}
+}
+
+// archiveListsTickets(statusLists);
+
+function archiveListsTickets(statusLists){
+	for (let statusList of statusLists) {
+		// this doesn't have to be async 
+		// it's just a cosmetic change to go along with the db change
+		axios.post(`https://api.trello.com/1/lists/${statusList.idList}/archiveAllCards`, {
+			key: trelloKey,
+			token: trelloToken
+		});
+	}
 }
 
 // sleep time expects milliseconds
-function sleep (time) {
+function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
@@ -82,16 +97,15 @@ async function createWebhook() {
   }
 }
 
+// if cw id does not exist in the db
+//    if the status for that cw id has changed
+//       then move the card in trello and update status in the db
+//    else
+//       then don't do anything
+// else
+//    then create that new trello card from cw
 async function run() {
   const tickets = await parseCWBoard();
-  // console.log(tickets);
-  // if cw id does not exist in the db
-  //    if the status for that cw id has changed
-  //       then move the card in trello and update status in the db
-  //    else
-  //       then don't do anything
-  // else
-  //    then create that new trello card from cw
 
 	for (let i = 0; i < tickets.length; i++) {
 		const [ticketExists] = await Promise.all([cwTicketAlreadyExists(tickets[i].id)]);
