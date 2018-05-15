@@ -1,17 +1,28 @@
-"use strict";
+'use strict';
 
 // key values hidden using .env file -- do not commit
 // via https://github.com/motdotla/dotenv
 require('dotenv').config();
 
 let express = require('express'),
-	app = express(),
-	bodyParser = require('body-parser'),
-	trelloKey = process.env.TRELLO_API_KEY,
-	trelloToken = process.env.TRELLO_API_TOKEN,
-	connectWiseApiKey = process.env.CW_API_KEY,
-	axios = require('axios'),
-	Card = require('./models/Card');
+    app = express(),
+    bodyParser = require('body-parser'),
+    trelloKey = process.env.TRELLO_API_KEY,
+    trelloToken = process.env.TRELLO_API_TOKEN,
+    connectWiseApiKey = process.env.CW_API_KEY,
+    axios = require('axios'),
+    Card = require('./models/Card');
+
+// currently no way of adding to this list programmatically
+const statusLists = [
+  'Triage',
+  'Queued',
+  'In Progress',
+  'On Hold',
+  'Internal Review',
+  'Client Review',
+  'No Longer Needed',
+  'Resolved'];
 
 // read the payload from the webhook
 app.use(bodyParser.json());
