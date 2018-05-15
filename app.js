@@ -58,12 +58,10 @@ async function runner() {
 	}
 }
 
-// archiveListsTickets(statusLists);
-
+// this doesn't have to be async 
+// it's just a cosmetic change to go along with the db change
 function archiveListsTickets(statusLists){
 	for (let statusList of statusLists) {
-		// this doesn't have to be async 
-		// it's just a cosmetic change to go along with the db change
 		axios.post(`https://api.trello.com/1/lists/${statusList.idList}/archiveAllCards`, {
 			key: trelloKey,
 			token: trelloToken
