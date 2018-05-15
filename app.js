@@ -11,7 +11,27 @@ let express = require('express'),
     trelloToken = process.env.TRELLO_API_TOKEN,
     connectWiseApiKey = process.env.CW_API_KEY,
     axios = require('axios'),
-    Card = require('./models/Card');
+	Card = require('./models/Card'),
+	ConnectWiseRise = require('connectwise-rest');
+
+	let cw = new ConnectWiseRise({
+		companyId: 'realnets',
+		companyUrl: 'na.myconnectwise.net',
+		publicKey: process.env.CW_PUBLIC_KEY,
+		privateKey: process.env.CW_PRIVATE_KEY,
+		entryPoint: 'v4_6_release',
+		debug: true
+	});
+
+	function updateSampleTicket(cwTicketId, statusId = 520) {
+		cw.ServiceDeskAPI.Tickets.updateTicket(cwTicketId, [{
+			op: 'replace',
+			path: 'status',
+			value: {id: statusId} 
+			//id of the status to change to, find with boards.getBoards and status.getStatuses
+		}]).then(res => console.log(res))
+		.catch(err => console.log(err));    
+	}
 
 // currently no way of adding to this list programmatically
 // hardcoded
@@ -82,7 +102,7 @@ async function createWebhook() {
     // http://53f47b43.ngrok.io
     const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
       description: 'Listen for board changes',
-      callbackURL: 'https://480ce67a.ngrok.io/board-change',
+      callbackURL: 'http://023a39e9.ngrok.io/board-change',
       idModel: trelloServiceBoard,
       key: trelloKey,
       token: trelloToken,
@@ -126,10 +146,12 @@ async function run() {
 				// update status in the db 
 				const [changedTicket] = await Promise.all([updateCardInDb(tickets[i].id, tickets[i].status.name)]);
 				console.log(changedTicket.trelloCardId);
+				console.log('status change');
+				console.log(tickets[i].status.name);
 
 				// then move the card in trello
 				// hardcoding moving the change back to open 
-				moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
+				moveTrelloCard(changedTicket.trelloCardId, changedTicket.status);
 			}
 		} else {
 			// then create that new trello card from cw 
@@ -148,7 +170,7 @@ async function run() {
 async function parseCWBoard() {
 	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
-
+	console.log(cwBoard.data);
 	return cwBoard.data;
 }
 
@@ -233,7 +255,7 @@ function createCard(trelloCardId, cwCardId, status) {
 }
 
 // update trello card list based on change
-async function moveTrelloCard(trelloCardId = '5af9fc0efc1caef03cd37aa4', status) {
+async function moveTrelloCard(trelloCardId, status) {
 	let targetList = matchListNameithIdList(status);
 
 	try {
@@ -258,11 +280,25 @@ function updateCardInDb(cwCardId, status) {
 	return Card.findOneAndUpdate(query, update, updateAndFindCallback);
 }
 
+// async function updateCardInDbFromTrello(trelloCardId, status) {
+// 	const [changedTicket] = await Promise.all([updateTrelloId(trelloCardId, status)]);
+
+// 	console.log(changedTicket);
+// }
+
+// function updateTrelloId(trelloCardId, status) {
+// 	let stringTrelloCardId = trelloCardId.toString();
+
+// 	let query = { trelloCardId: stringTrelloCardId };
+// 	let update = { status: status };
+// 	return Card.findOneAndUpdate(query, update, updateAndFindCallback);
+// }
+
 function updateAndFindCallback(err, documents) {
 	if (err) {
 		console.log("Error: " + err);
 	} else {
-		// console.log(documents);
+		console.log(documents);
 		return documents;
 	}
 }
@@ -275,7 +311,7 @@ process.on('unhandledRejection', error => {
 // quick sanity check
 function findALlDb() {
 	console.log("checking all entries");
-	Card.find({}, (err, cards) => {
+	Card.find({status: 'Queued'}, (err, cards) => {
 		if (err) {
 			console.log(err);
 		} else {
@@ -283,8 +319,6 @@ function findALlDb() {
 			console.log(cards.length);
 		}
 	})
-
-
 }
 
 // empty out database in mongo db 
@@ -309,11 +343,44 @@ app.listen(3000, () => console.log('Example app listening on port 3000!'));
 
 // web hooks for listening for board change
 // this is where ngrok is being forwarded to
-app.post('/board-change', (req, res) => {
-	res.status(200).send('board change');
-	console.log('board change post');
-	console.log(req.body.action);
+app.post('/board-change', async (req, res) => {
+	console.log('board change');
+
+
+	// this is a check for whether the action is update list
+	if (typeof(req.body.action.data.listAfter) !== 'undefined') {
+		console.log(req.body.action.data.card.name);
+		console.log('**********************update board**********');
+		// req.body.action.id => trello id 
+		// could use the summary lol 
+		// req.body.action.data.listAfter => status like 'In Progress' 
+		// need to map 
+
+		// updates on cw side 
+		// which will then coerce the db 
+
+		let regexp = /^(\d*?):/;
+
+		let cwId = req.body.action.data.card.name.match(regexp);
+		console.log(cwId[1]);
+		updateSampleTicket(cwId[1]);
+	} else {
+		res.status(200).send('board change and not update');
+	}
 });
+
+
+// console.log(findCwIdFromTrello());
+
+function findCwIdFromTrello(trelloCardId = '5afb42d8ea580b434580de19') {
+	Card.find({trelloCardId: trelloCardId}, 'cwCardId', function (err, card) {
+	if (err) console.log(err);
+	if (card) {
+		console.log(card)
+			return card;
+	}
+	});
+}
 
 // this is to ensure that the webhook can be created
 // trello looks for a good callback url
