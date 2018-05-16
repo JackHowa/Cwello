@@ -123,16 +123,16 @@ async function createWebhook() {
     // http://53f47b43.ngrok.io
     const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
       description: 'Listen for board changes',
-      callbackURL: 'https://50c27bf6.ngrok.io/board-change',
+      callbackURL: 'https://lit-escarpment-80672.herokuapp.com/board-change',
       idModel: trelloServiceBoard,
       key: trelloKey,
       token: trelloToken,
       active: true
     });
-    console.log("Board web hook " + boardWebhook);
+    // console.log("Board web hook " + boardWebhook);
   } catch (err) {
-    console.log('Something went wrong when creating webhook');
-    console.error(err);
+    // console.log('Something went wrong when creating webhook');
+    // console.error(err);
   }
 }
 
@@ -166,9 +166,9 @@ async function run() {
 				// need to find the db for matching trello id and db's status 
 				// update status in the db 
 				const [changedTicket] = await Promise.all([updateCardInDb(tickets[i].id, tickets[i].status.name)]);
-				console.log(changedTicket.trelloCardId);
+				// console.log(changedTicket.trelloCardId);
 				console.log('status change');
-				console.log(tickets[i].status.name);
+				// console.log(tickets[i].status.name);
 
 				// then move the card in trello
 				// hardcoding moving the change back to open 
@@ -180,10 +180,10 @@ async function run() {
 
 			// save to db 
 			createCard(newTrelloCard.id, tickets[i].id, tickets[i].status.name);
-			console.log("done making one card");
+			// console.log("done making one card");
 		}
 	}
-	console.log("done making tickets");
+	// console.log("done making tickets");
 }
 
 // take in the range of the cw board 
@@ -191,7 +191,7 @@ async function run() {
 async function parseCWBoard() {
 	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
-	console.log(cwBoard.data);
+	// console.log(cwBoard.data);
 	return cwBoard.data;
 }
 
@@ -204,10 +204,10 @@ async function cwTicketAlreadyExists(cwCardId) {
 		const cardMatchCount = await Card.count({
 			cwCardId
 		}).exec();
-		console.log("amount of matches found: " + cardMatchCount);
+		// console.log("amount of matches found: " + cardMatchCount);
 		return cardMatchCount > 0;
 	} catch (err) {
-		console.log('Something went wrong when trying to find the matching cw card id')
+		// console.log('Something went wrong when trying to find the matching cw card id')
 	}
 }
 
@@ -222,7 +222,7 @@ async function cwTicketStatusChanged(cwCardId, status) {
 			cwCardId,
 			status
 		}).exec();
-		console.log("amount of matches found: " + cardMatchCount);
+		// console.log("amount of matches found: " + cardMatchCount);
 
 		// we can safely assume that cwCardId is a match already 
 		// status has changed 
@@ -286,10 +286,10 @@ async function moveTrelloCard(trelloCardId, status) {
 			token: trelloToken
 		});
 		const [trelloCard] = await Promise.all([trelloCardPromise]);
-		console.log(trelloCard.data);
+		// console.log(trelloCard.data);
 		console.log('Moved ticket');
 	} catch (err) {
-		console.log(err)
+		// console.log(err)
 	}
 }
 
@@ -319,7 +319,7 @@ function updateAndFindCallback(err, documents) {
 	if (err) {
 		console.log("Error: " + err);
 	} else {
-		console.log(documents);
+		// console.log(documents);
 		return documents;
 	}
 }
@@ -331,31 +331,22 @@ process.on('unhandledRejection', error => {
 
 // quick sanity check
 function findALlDb() {
-	console.log("checking all entries");
+	// console.log("checking all entries");
 	Card.find({status: 'Queued'}, (err, cards) => {
 		if (err) {
 			console.log(err);
 		} else {
 			// check on the last one just to make sure
-			console.log(cards.length);
+			// console.log(cards.length);
 		}
 	})
 }
 
 // empty out database in mongo db 
 async function clearDb() {
-  console.log("clearing all entries");
+//   console.log("clearing all entries");
   let query = Card.remove({});
   query.exec(); // returns promise
-
-
-	// Card.remove({}, (err, cards) => {
-	// 	if (err) {
-	// 		console.log(err)
-	// 	} else {
-	// 		console.log("deleting all");
-	// 	}
-	// })
 }
 
 // express ability to listen for webhook changes stub
@@ -370,7 +361,7 @@ app.post('/board-change', async (req, res) => {
 
 	// this is a check for whether the action is update list
 	if (typeof(req.body.action.data.listAfter) !== 'undefined') {
-		console.log(req.body.action.data.card.name);
+		// console.log(req.body.action.data.card.name);
 		console.log('**********************update board**********');
 		// req.body.action.id => trello id 
 		// could use the summary lol 
@@ -383,11 +374,11 @@ app.post('/board-change', async (req, res) => {
 		let regexp = /^(\d*?):/;
 
 		let cwId = req.body.action.data.card.name.match(regexp);
-		console.log(cwId[1]);
+		// console.log(cwId[1]);
 
 		// console.log(req.body.action.data.listAfter.name);
 		let statusId = matchIdStatusithIdList(req.body.action.data.listAfter.name);
-		console.log(statusId);
+		// console.log(statusId);
 		await updateSampleTicket(cwId[1], statusId);
 	} else {
 		res.status(200).send('board change and not update');
@@ -397,26 +388,26 @@ app.post('/board-change', async (req, res) => {
 
 // console.log(findCwIdFromTrello());
 
-function findCwIdFromTrello(trelloCardId) {
-	Card.find({trelloCardId: trelloCardId}, 'cwCardId', function (err, card) {
-	if (err) console.log(err);
-	if (card) {
-		console.log(card)
-		return card;
-	}
-	});
-}
+// function findCwIdFromTrello(trelloCardId) {
+// 	Card.find({trelloCardId: trelloCardId}, 'cwCardId', function (err, card) {
+// 	if (err) console.log(err);
+// 	if (card) {
+// 		// console.log(card)
+// 		return card;
+// 	}
+// 	});
+// }
 
 // this is to ensure that the webhook can be created
 // trello looks for a good callback url
 app.get('/board-change', (req, res) => {
 	res.status(200).send('board change');
-	console.log("board get");
+	// console.log("board get");
 });
 
 // this is to ensure that the webhook can be created
 // trello looks for a good callback url
 app.get('/', (req, res) => {
 	res.status(200).send('hello');
-	console.log("hello");
+	// console.log("hello");
 });
