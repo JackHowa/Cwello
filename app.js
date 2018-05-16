@@ -14,36 +14,54 @@ let express = require('express'),
 	Card = require('./models/Card'),
 	ConnectWiseRise = require('connectwise-rest');
 
-	let cw = new ConnectWiseRise({
-		companyId: 'realnets',
-		companyUrl: 'na.myconnectwise.net',
-		publicKey: process.env.CW_PUBLIC_KEY,
-		privateKey: process.env.CW_PRIVATE_KEY,
-		entryPoint: 'v4_6_release',
-		debug: true
-	});
-
-	function updateSampleTicket(cwTicketId, statusId = 520) {
-		cw.ServiceDeskAPI.Tickets.updateTicket(cwTicketId, [{
-			op: 'replace',
-			path: 'status',
-			value: {id: statusId} 
-			//id of the status to change to, find with boards.getBoards and status.getStatuses
-		}]).then(res => console.log(res))
-		.catch(err => console.log(err));    
-	}
+let cw = new ConnectWiseRise({
+	companyId: 'realnets',
+	companyUrl: 'na.myconnectwise.net',
+	publicKey: process.env.CW_PUBLIC_KEY,
+	privateKey: process.env.CW_PRIVATE_KEY,
+	entryPoint: 'v4_6_release',
+	debug: true
+});
 
 // currently no way of adding to this list programmatically
 // hardcoded
 let statusLists = [
-  { 'name': 'Triage', 'idList': '5afa40c2e53e1adfa38698ed' },
-  { 'name': 'Queued', 'idList': '5afa40c52f74e21b2f89353f' },
-  { 'name': 'In Progress', 'idList': '5afa40c983304f3465ade176' },
-  { 'name': 'On Hold', 'idList': '5afa40cdc8ad4c1755fd5e96' },
-  { 'name': 'Internal Review', 'idList': '5afa40d124a895225d845db3' },
-  { 'name': 'Client Review', 'idList': '5afa40d5d8f556a7a53d7f21' },
-  { 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852' },
-  { 'name': 'Resolved', 'idList': '5afa40da3be986feaace8858' }];
+	{ 'name': 'Triage', 'idList': '5afa40c2e53e1adfa38698ed', 'cwStatusId': '519' },
+	{ 'name': 'Queued', 'idList': '5afa40c52f74e21b2f89353f', 'cwStatusId': '542' },
+	{ 'name': 'In Progress', 'idList': '5afa40c983304f3465ade176', 'cwStatusId':  '520'},
+	{ 'name': 'On Hold', 'idList': '5afa40cdc8ad4c1755fd5e96' },
+	{ 'name': 'Internal Review', 'idList': '5afa40d124a895225d845db3', 'cwStatusId': '585' },
+	{ 'name': 'Client Review', 'idList': '5afa40d5d8f556a7a53d7f21', 'cwStatusId': '543' },
+	{ 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852' },
+	{ 'name': 'Resolved', 'idList': '5afa40da3be986feaace8858', 'cwStatusId': '521'  }];
+
+// findCWStatuses();
+// function findCWStatuses() {
+// 	// get boards
+// 	// via https://github.com/covenanttechnologysolutions/connectwise-rest
+// 	cw.ServiceDeskAPI.Boards.getBoards().then(res => console.log(res));
+// 	// cw.ServiceDeskAPI.Boards.getStatuses([
+
+// 	// ]).then(res => console.log(res));
+// }
+
+function matchIdStatusithIdList(status) {
+	let targetListObject = statusLists.find(listObject => listObject.name === status);
+	console.log(targetListObject);
+	return targetListObject.cwStatusId;
+}
+
+function updateSampleTicket(cwTicketId, statusId) {
+	cw.ServiceDeskAPI.Tickets.updateTicket(cwTicketId, [{
+		op: 'replace',
+		path: 'status',
+		value: {id: statusId} 
+		//id of the status to change to, find with boards.getBoards and status.getStatuses
+	}]).then(res => console.log(res))
+	.catch(err => console.log(err));    
+}
+
+
 
 function matchListNameithIdList(status) {
 	let targetListObject = statusLists.find(listObject => listObject.name === status);
@@ -67,7 +85,7 @@ const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconn
 // new ngrok will create a different callback url
 async function runner() {
 	// cosmetic change on the front-end of clearing the board
-	archiveListsTickets(statusLists);
+	await archiveListsTickets(statusLists);
 	await clearDb();
 	await run();
 	await createWebhook();
@@ -102,7 +120,7 @@ async function createWebhook() {
     // http://53f47b43.ngrok.io
     const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
       description: 'Listen for board changes',
-      callbackURL: 'http://023a39e9.ngrok.io/board-change',
+      callbackURL: 'https://49f0ebc6.ngrok.io/board-change',
       idModel: trelloServiceBoard,
       key: trelloKey,
       token: trelloToken,
@@ -151,7 +169,7 @@ async function run() {
 
 				// then move the card in trello
 				// hardcoding moving the change back to open 
-				moveTrelloCard(changedTicket.trelloCardId, changedTicket.status);
+				moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
 			}
 		} else {
 			// then create that new trello card from cw 
@@ -170,7 +188,7 @@ async function run() {
 async function parseCWBoard() {
 	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
-	console.log(cwBoard.data);
+	// console.log(cwBoard.data);
 	return cwBoard.data;
 }
 
@@ -250,7 +268,7 @@ function createCard(trelloCardId, cwCardId, status) {
 	});
 	card.save(function (err, card) {
 		if (err) return console.error(err);
-		console.log(card);
+		// console.log(card);
 	});
 }
 
@@ -363,7 +381,11 @@ app.post('/board-change', async (req, res) => {
 
 		let cwId = req.body.action.data.card.name.match(regexp);
 		console.log(cwId[1]);
-		updateSampleTicket(cwId[1]);
+
+		// console.log(req.body.action.data.listAfter.name);
+		let statusId = matchIdStatusithIdList(req.body.action.data.listAfter.name);
+		console.log(statusId);
+		await updateSampleTicket(cwId[1], statusId);
 	} else {
 		res.status(200).send('board change and not update');
 	}
@@ -377,7 +399,7 @@ function findCwIdFromTrello(trelloCardId = '5afb42d8ea580b434580de19') {
 	if (err) console.log(err);
 	if (card) {
 		console.log(card)
-			return card;
+		return card;
 	}
 	});
 }
