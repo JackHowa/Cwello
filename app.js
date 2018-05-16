@@ -351,7 +351,10 @@ async function clearDb() {
 
 // express ability to listen for webhook changes stub
 // listening on port 5000 
-app.listen(5000, () => console.log('Example app listening on port 5000!'));
+
+const port = process.env.PORT;
+
+app.listen(port, () => console.log(`Example app listening on port ${port}`));
 
 // web hooks for listening for board change
 // this is where ngrok is being forwarded to
