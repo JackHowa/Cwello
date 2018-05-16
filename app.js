@@ -173,8 +173,12 @@ async function run() {
 				await moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
 			}
 		} else {
+
+			console.log(tickets[i].company);
+			console.log(tickets[i]);
 			// then create that new trello card from cw 
-			const newTrelloCard = await createNewTrelloCard(tickets[i].id, tickets[i].status.name, tickets[i].summary);
+
+			const newTrelloCard = await createNewTrelloCard(tickets[i].id, tickets[i].status.name, tickets[i].summary, tickets[i].company.name);
 
 			// save to db 
 			createCard(newTrelloCard.id, tickets[i].id, tickets[i].status.name);
@@ -184,12 +188,15 @@ async function run() {
 	// console.log("done making tickets");
 }
 
+// to see all the tickets
+// parseCWBoard();
+
 // take in the range of the cw board 
 // need to create the auth token for this to work in the cw board url
 async function parseCWBoard() {
 	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
-	// console.log(cwBoard.data);
+	console.log(cwBoard.data);
 	return cwBoard.data;
 }
 
@@ -233,7 +240,7 @@ async function cwTicketStatusChanged(cwCardId, status) {
 }
 
 // this is if the card in the cw isn't represented in trello yet
-async function createNewTrelloCard(cwCardId, status, summary) {
+async function createNewTrelloCard(cwCardId, status, summary, companyName) {
 	// needs to be string for post
 	let stringCardId = cwCardId.toString();
 
@@ -245,7 +252,7 @@ async function createNewTrelloCard(cwCardId, status, summary) {
 	let cwEntryPoint = `https://na.myconnectwise.net/v4_6_release/services/system_io/router/openrecord.rails?locale=en_US&recordType=ServiceFv&recid=${cwCardId}&companyName=realnets`;
 
 	let trelloCardPromise = axios.post('https://api.trello.com/1/cards', {
-		name: `${stringCardId}: ${summary}`,
+		name: `${stringCardId}: ${summary} (${companyName})`,
 		desc: `Access Ticket: ${cwEntryPoint}`,
 		idList: idList,
 		keepFromSource: 'all',
