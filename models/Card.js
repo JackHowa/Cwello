@@ -28,6 +28,6 @@ let cardSchema = new Schema({
 // convert schema definition into a Model that's accessible 
 let Card = mongoose.model('Card', cardSchema);
 
-mongoose.set('debug', true);
+// mongoose.set('debug', true);
 
 module.exports = Card;
