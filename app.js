@@ -123,7 +123,7 @@ async function createWebhook() {
     // http://53f47b43.ngrok.io
     const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
       description: 'Listen for board changes',
-      callbackURL: 'https://49f0ebc6.ngrok.io/board-change',
+      callbackURL: 'https://lit-escarpment-80672.herokuapp.com/board-change',
       idModel: trelloServiceBoard,
       key: trelloKey,
       token: trelloToken,
@@ -397,7 +397,7 @@ app.post('/board-change', async (req, res) => {
 
 // console.log(findCwIdFromTrello());
 
-function findCwIdFromTrello(trelloCardId = '5afb42d8ea580b434580de19') {
+function findCwIdFromTrello(trelloCardId) {
 	Card.find({trelloCardId: trelloCardId}, 'cwCardId', function (err, card) {
 	if (err) console.log(err);
 	if (card) {
@@ -412,4 +412,11 @@ function findCwIdFromTrello(trelloCardId = '5afb42d8ea580b434580de19') {
 app.get('/board-change', (req, res) => {
 	res.status(200).send('board change');
 	console.log("board get");
+});
+
+// this is to ensure that the webhook can be created
+// trello looks for a good callback url
+app.get('/', (req, res) => {
+	res.status(200).send('hello');
+	console.log("hello");
 });
