@@ -49,7 +49,6 @@ let statusLists = [
 // once for the forced move, once when it realized it was moved
 function matchIdStatusithIdList(status) {
 	let targetListObject = statusLists.find(listObject => listObject.name === status);
-	console.log(targetListObject);
 	return targetListObject.cwStatusId;
 }
 
@@ -64,8 +63,6 @@ function updateSampleTicket(cwTicketId, statusId) {
 	}]).then(res => console.log(res)) /* this success is running */
 	.catch(err => console.log(err));    
 }
-
-
 
 function matchListNameithIdList(status) {
 	let targetListObject = statusLists.find(listObject => listObject.name === status);
@@ -123,8 +120,6 @@ runner();
 
 async function createWebhook() {
   try {
-    // use board id to listen
-    // http://53f47b43.ngrok.io
     const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
       description: 'Listen for board changes',
       callbackURL: 'https://lit-escarpment-80672.herokuapp.com/board-change',
@@ -161,7 +156,6 @@ async function run() {
 			// don't make a new ticket
 			console.log('ticket already exists');
 
-			// need to hardcode the change of a cw board ticket 
 			// will be renaming these params on the other side to directly match in db
 			const [statusChanged] = await Promise.all([cwTicketStatusChanged(tickets[i].id, tickets[i].status.name)]);
 
@@ -176,7 +170,7 @@ async function run() {
 
 				// then move the card in trello
 				// hardcoding moving the change back to open 
-				moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
+				await moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
 			}
 		} else {
 			// then create that new trello card from cw 
