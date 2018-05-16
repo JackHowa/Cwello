@@ -29,10 +29,10 @@ let statusLists = [
 	{ 'name': 'Triage', 'idList': '5afa40c2e53e1adfa38698ed', 'cwStatusId': '519' },
 	{ 'name': 'Queued', 'idList': '5afa40c52f74e21b2f89353f', 'cwStatusId': '542' },
 	{ 'name': 'In Progress', 'idList': '5afa40c983304f3465ade176', 'cwStatusId':  '520'},
-	{ 'name': 'On Hold', 'idList': '5afa40cdc8ad4c1755fd5e96' },
+	{ 'name': 'On Hold', 'idList': '5afa40cdc8ad4c1755fd5e96', 'cwStatusId': '584' },
 	{ 'name': 'Internal Review', 'idList': '5afa40d124a895225d845db3', 'cwStatusId': '585' },
 	{ 'name': 'Client Review', 'idList': '5afa40d5d8f556a7a53d7f21', 'cwStatusId': '543' },
-	{ 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852' },
+	{ 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852', 'cwStatusId': '544' },
 	{ 'name': 'Resolved', 'idList': '5afa40da3be986feaace8858', 'cwStatusId': '521'  }];
 
 // findCWStatuses();
@@ -79,6 +79,9 @@ const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
 const olderCwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-04-20T00:00:00Z]';
 
 const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
+
+
+const newerCwBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-15T00:00:00Z]';
 
 
 // this should be run on startup or upon a new ngrok server
@@ -188,7 +191,7 @@ async function run() {
 async function parseCWBoard() {
 	const cwPromise = axios.get(cwServiceBoard);
 	const [cwBoard] = await Promise.all([cwPromise]);
-	// console.log(cwBoard.data);
+	console.log(cwBoard.data);
 	return cwBoard.data;
 }
 
