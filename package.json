@@ -14,5 +14,15 @@
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "mongoose": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://JHoward@git.realnets.net/scm/cwel/cwello.git"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.11.0"
   }
 }
