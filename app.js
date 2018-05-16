@@ -45,19 +45,23 @@ let statusLists = [
 // 	// ]).then(res => console.log(res));
 // }
 
+// maybe this move is being double called, 
+// once for the forced move, once when it realized it was moved
 function matchIdStatusithIdList(status) {
 	let targetListObject = statusLists.find(listObject => listObject.name === status);
 	console.log(targetListObject);
 	return targetListObject.cwStatusId;
 }
 
+// don't think this needs to be async but not sure 
 function updateSampleTicket(cwTicketId, statusId) {
+	// don't think this update is working 
 	cw.ServiceDeskAPI.Tickets.updateTicket(cwTicketId, [{
 		op: 'replace',
 		path: 'status',
 		value: {id: statusId} 
 		//id of the status to change to, find with boards.getBoards and status.getStatuses
-	}]).then(res => console.log(res))
+	}]).then(res => console.log(res)) /* this success is running */
 	.catch(err => console.log(err));    
 }
 
@@ -360,12 +364,15 @@ app.listen(port, () => console.log(`Example app listening on port ${port}`));
 // this is where ngrok is being forwarded to
 app.post('/board-change', async (req, res) => {
 	console.log('board change');
-
-
+	
 	// this is a check for whether the action is update list
 	if (typeof(req.body.action.data.listAfter) !== 'undefined') {
+
 		// console.log(req.body.action.data.card.name);
 		console.log('**********************update board**********');
+		console.log(`data: ${req.body.action.data}`);
+		console.log(`list after: ${req.body.action.data.listAfter}`);
+
 		// req.body.action.id => trello id 
 		// could use the summary lol 
 		// req.body.action.data.listAfter => status like 'In Progress' 
@@ -383,6 +390,7 @@ app.post('/board-change', async (req, res) => {
 		let statusId = matchIdStatusithIdList(req.body.action.data.listAfter.name);
 		// console.log(statusId);
 		await updateSampleTicket(cwId[1], statusId);
+		res.status(200).send('board change');
 	} else {
 		res.status(200).send('board change and not update');
 	}
