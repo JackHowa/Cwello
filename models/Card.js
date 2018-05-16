@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
+const mongoDB = 'mongodb+srv://jhoward:2CekegB3GEAFS6qzgIyCVSls75st3RMYu1NfQJ@cluster0-8kzdx.mongodb.net/test?retryWrites=true';
 // Set up default mongoose connection
-const mongoDB = 'mongodb://localhost/my_database';
+// const mongoDB = 'mongodb://localhost/my_database';
 
 mongoose.connect(mongoDB);
 
