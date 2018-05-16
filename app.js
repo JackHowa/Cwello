@@ -35,6 +35,11 @@ let statusLists = [
 	{ 'name': 'No Longer Needed', 'idList': '5afa40d8dc9fb52f4897e852', 'cwStatusId': '544' },
 	{ 'name': 'Resolved', 'idList': '5afa40da3be986feaace8858', 'cwStatusId': '521'  }];
 
+// url: https://trello.com/b/l8Qe2St0/cwello-10
+const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
+
+const apiLink = 'https://lit-escarpment-80672.herokuapp.com';
+
 // findCWStatuses();
 // function findCWStatuses() {
 // 	// get boards
@@ -72,21 +77,14 @@ function matchListNameithIdList(status) {
 // read the payload from the webhook
 app.use(bodyParser.json());
 
-// url: https://trello.com/b/l8Qe2St0/cwello-test
-const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
-
 // cw info 
 // longer time frame filter
 const olderCwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-04-20T00:00:00Z]';
 
 const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
 
-
 const newerCwBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-15T00:00:00Z]';
 
-
-// this should be run on startup or upon a new ngrok server
-// new ngrok will create a different callback url
 async function runner() {
 	// cosmetic change on the front-end of clearing the board
 	await archiveListsTickets(statusLists);
@@ -116,13 +114,14 @@ function sleep(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
 }
 
+// ****run the runner here**** 
 runner();
 
 async function createWebhook() {
   try {
     const boardWebhook = await axios.post("https://api.trello.com/1/webhooks/", {
       description: 'Listen for board changes',
-      callbackURL: 'https://lit-escarpment-80672.herokuapp.com/board-change',
+      callbackURL: `${apiLink}/board-change`,
       idModel: trelloServiceBoard,
       key: trelloKey,
       token: trelloToken,
@@ -354,9 +353,8 @@ async function clearDb() {
   query.exec(); // returns promise
 }
 
-// express ability to listen for webhook changes stub
-// listening on port 5000 
-
+// via https://stackoverflow.com/questions/28706180/setting-the-port-for-node-js-server-on-heroku#comment68148657_28707129
+// listens on whatever port heroku decides
 const port = process.env.PORT;
 
 app.listen(port, () => console.log(`Example app listening on port ${port}`));
@@ -381,7 +379,8 @@ app.post('/board-change', async (req, res) => {
 
 		// updates on cw side 
 		// which will then coerce the db 
-
+		// ******important*****
+		// this is a hardcoded value relying on the ticket # starting with `1234: name name`
 		let regexp = /^(\d*?):/;
 
 		let cwId = req.body.action.data.card.name.match(regexp);
