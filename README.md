@@ -8,11 +8,11 @@ ConnectWise is a time-logging and invoicing system that has a ton of features. S
 
 ## Build Status 
 
-![Heroku](http://heroku-badge.herokuapp.com/?app=lit-escarpment-80672&style=flat&svg=1)
+[![Heroku](http://heroku-badge.herokuapp.com/?app=lit-escarpment-80672&style=flat&svg=1)]
 
 ## Code Style 
 
-Following AirBnb styleguide, using ESLint.
+Following AirBnb styleguide, [using JSCS](https://www.jetbrains.com/help/phpstorm/jscs.html), on PhpStorm.
 
 ## Getting Started 
 
