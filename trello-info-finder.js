@@ -13,6 +13,7 @@ const baseTrelloURL = 'https://api.trello.com/1/';
 // if boards have already been created
 // find what boards you have access to
 // https://trello.readme.io/v1.0/reference#membersidboards
+
 // findYourBoards(trelloUsername);
 async function findBoardIds(trelloUsername) {
   const boardPromise = axios.get(`${baseTrelloURL}/members/${trelloUsername}`, {
@@ -30,7 +31,7 @@ async function findBoardIds(trelloUsername) {
   return boards.data.idBoards;
 }
 
-findBoardListIds('5a4fcff1194d61aa1ab14043');
+// findBoardListIds('5a4fcff1194d61aa1ab14043');
 
 // https://trello.readme.io/v1.0/reference#boardsboardidlists
 async function findBoardListIds(boardId) {
