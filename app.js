@@ -384,38 +384,38 @@ app.use(require('./routes/index'));
 // web hooks for listening for board change
 // todo: separate this logic out into a new file
 app.post('/board-change', async (req, res) => {
-    console.log('board change');
+  console.log('board change');
 
-    // this is a check for whether the action is update list
-    if (typeof (req.body.action.data.listAfter) !== 'undefined') {
+  // this is a check for whether the action is update list
+  if (typeof (req.body.action.data.listAfter) !== 'undefined') {
 
-      // console.log(req.body.action.data.card.name);
-      console.log('**********************update board**********');
-      console.log(`data: ${req.body.action.data}`);
-      console.log(`list after: ${req.body.action.data.listAfter}`);
+    // console.log(req.body.action.data.card.name);
+    console.log('**********************update board**********');
+    console.log(`data: ${req.body.action.data}`);
+    console.log(`list after: ${req.body.action.data.listAfter}`);
 
-      // req.body.action.id => trello id
-      // could use the summary lol
-      // req.body.action.data.listAfter => status like 'In Progress'
-      // need to map
+    // req.body.action.id => trello id
+    // could use the summary lol
+    // req.body.action.data.listAfter => status like 'In Progress'
+    // need to map
 
-      // updates on cw side
-      // which will then coerce the db
-      // ******important*****
-      // this is a hardcoded value relying on the ticket # starting with `1234: name name`
-      let regexp = /^(\d*?):/;
+    // updates on cw side
+    // which will then coerce the db
+    // ******important*****
+    // this is a hardcoded value relying on the ticket # starting with `1234: name name`
+    let regexp = /^(\d*?):/;
 
-      let cwId = req.body.action.data.card.name.match(regexp);
+    let cwId = req.body.action.data.card.name.match(regexp);
 
-      // console.log(cwId[1]);
+    // console.log(cwId[1]);
 
-      // console.log(req.body.action.data.listAfter.name);
-      let statusId = matchIdStatusithIdList(req.body.action.data.listAfter.name);
+    // console.log(req.body.action.data.listAfter.name);
+    let statusId = matchIdStatusithIdList(req.body.action.data.listAfter.name);
 
-      // console.log(statusId);
-      await updateTicket(cwId[1], statusId);
-      res.status(200).send('board change');
-    } else {
-      res.status(200).send('board change and not update');
-    }
-  });
+    // console.log(statusId);
+    await updateTicket(cwId[1], statusId);
+    res.status(200).send('board change');
+  } else {
+    res.status(200).send('board change and not update');
+  }
+});
