@@ -54,6 +54,39 @@ CW_PRIVATE_KEY=34sdfkkndfk
 # if you combine the two with a ':' you can make the total api key
 CW_API_KEY=kadsfksadfj:34sdfkkndfk
 ``` 
+### Manual Trello Setup 
+
+One thing that can be improved here is a manual Trello setup based on ConnectWise boards. In the meantime, `cw-info-finder.js` can determine your account's CW boards and their ids. If you input in your .env file CW info, then you can `console.log()` your info after customizing the CW finder file. 
+
+You can name your Trello board whatever you want. It doesn't necessarily have to be the same as its connected CW board. 
+
+So you should be able to find your target board's name. If you're looking for the sales board, that will output an id. Importantly, that id can find available statuses and status ids. Believe it or not, the same status (e.g., "In Progress") will have a different ID on a different board ... within your same account. 
+
+In the `app.js`, there's an array of objects with status name, idList, and statusId information. The status name should correlate with what's in CW. The other ids are labeled in the code. 
+
+In trello, each column is called a "List". So the idList is based on the trello status id. That Trello information can be found after you've created the board and respective status lists. The `trello-info-finder.js` will allow you to input your username in order to `console.log()` the boards your account has access to. If you didn't create the board yourself, you may not have access to it if someone else made it or it's not your Trello team. 
+
+Once you know your Trello board name on the back-end, you can find the trello board's id. That id can then be used in the file to find status's respective list id. That trello list id will go in the statusLists array. 
+
+```
+// currently no way of adding to this list programmatically
+// name your status based on the target board in connectwise
+// to see your available cw boards, configure cw-info-finder.js
+// to see those cw boards status id, for cwStatusId
+// idList is a trello id that comes from you manually creating the board in trello
+// lists should be created based on target names in CW
+// trello board information can be gleaned from trello-info-finder
+let statusLists = [
+    { name: 'Triage', idList: '5afa40c2e53e1adfa38698ed', cwStatusId: '519' },
+    { name: 'Queued', idList: '5afa40c52f74e21b2f89353f', cwStatusId: '542' },
+    { name: 'In Progress', idList: '5afa40c983304f3465ade176', cwStatusId: '520' },
+    { name: 'On Hold', idList: '5afa40cdc8ad4c1755fd5e96', cwStatusId: '584' },
+    { name: 'Internal Review', idList: '5afa40d124a895225d845db3', cwStatusId: '585' },
+    { name: 'Client Review', idList: '5afa40d5d8f556a7a53d7f21', cwStatusId: '543' },
+    { name: 'No Longer Needed', idList: '5afa40d8dc9fb52f4897e852', cwStatusId: '544' },
+    { name: 'Resolved', idList: '5afa40da3be986feaace8858', cwStatusId: '521' }];
+
+```
 
 ### Cloud Database Setup 
 
