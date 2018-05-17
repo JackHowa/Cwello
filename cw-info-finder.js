@@ -5,7 +5,6 @@ require('dotenv').config();
 const axios = require('axios');
 const ConnectWise = require('connectwise-rest');
 
-
 let companyName = 'realnets';
 
 let cw = new ConnectWise({
@@ -16,19 +15,6 @@ let cw = new ConnectWise({
   entryPoint: 'v4_6_release',
   debug: true,
 });
-
-// don't think this needs to be async but not sure
-function updateSampleTicket(cwTicketId, statusId) {
-  // don't think this update is working
-  // id of the status to change to, find with boards.getBoards and status.getStatuses
-
-  cw.ServiceDeskAPI.Tickets.updateTicket(cwTicketId, [{
-    op: 'replace',
-    path: 'status',
-    value: { id: statusId },
-  }]).then(res => console.log(res)) /* this success is running */
-    .catch(err => console.log(err));
-}
 
 // getBoards();
 
@@ -54,7 +40,7 @@ process.on('unhandledRejection', error => {
 // [ [ 'name: Triage', 'id: 519' ],
 //   [ 'name: In Progress', 'id: 520' ] ]
 
-findBoard('25');
+// findBoard('25');
 
 async function findBoard(boardId) {
   let boardPromise = cw.ServiceDeskAPI.Statuses.getStatusesByBoardId(boardId);
