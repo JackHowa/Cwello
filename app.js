@@ -13,10 +13,16 @@ const trelloToken = process.env.TRELLO_API_TOKEN;
 const connectWiseApiKey = process.env.CW_API_KEY;
 const axios = require('axios');
 const Card = require('./models/Card');
-const ConnectWiseRise = require('connectwise-rest');
+const ConnectWise = require('connectwise-rest');
 
-let cw = new ConnectWiseRise({
-    companyId: 'realnets',
+let companyName = 'realnets';
+
+// url can be determined by your region
+// na = north america, I believe
+// the url can be gained from how your cw url normally begins
+// not sure how to scale entryPoint and when they release a new v
+let cw = new ConnectWise({
+    companyId: companyName,
     companyUrl: 'na.myconnectwise.net',
     publicKey: process.env.CW_PUBLIC_KEY,
     privateKey: process.env.CW_PRIVATE_KEY,
@@ -25,7 +31,12 @@ let cw = new ConnectWiseRise({
   });
 
 // currently no way of adding to this list programmatically
-// hardcoded
+// name your status based on the target board in connectwise
+// to see your available cw boards, configure cw-info-finder.js
+// to see those cw boards status id, for cwStatusId
+// idList is a trello id that comes from you manually creating the board in trello
+// lists should be created based on target names in CW
+// trello board information can be gleaned from trello-info-finder
 let statusLists = [
     { name: 'Triage', idList: '5afa40c2e53e1adfa38698ed', cwStatusId: '519' },
     { name: 'Queued', idList: '5afa40c52f74e21b2f89353f', cwStatusId: '542' },
@@ -36,22 +47,13 @@ let statusLists = [
     { name: 'No Longer Needed', idList: '5afa40d8dc9fb52f4897e852', cwStatusId: '544' },
     { name: 'Resolved', idList: '5afa40da3be986feaace8858', cwStatusId: '521' }];
 
-let companyName = 'realnets';
-
 // url: https://trello.com/b/l8Qe2St0/cwello-10
+// this information can be gained from trello-info-finder
+// you can input your username as a param to find boards you've already created
 const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
 
+// this is based on the heroku name
 const apiLink = 'https://lit-escarpment-80672.herokuapp.com';
-
-// findCWStatuses();
-// function findCWStatuses() {
-// 	// get boards
-// 	// via https://github.com/covenanttechnologysolutions/connectwise-rest
-// 	cw.ServiceDeskAPI.Boards.getBoards().then(res => console.log(res));
-// 	// cw.ServiceDeskAPI.Boards.getStatuses([
-
-// 	// ]).then(res => console.log(res));
-// }
 
 // maybe this move is being double called,
 // once for the forced move, once when it realized it was moved
@@ -61,7 +63,7 @@ function matchIdStatusithIdList(status) {
 }
 
 // don't think this needs to be async but not sure
-function updateSampleTicket(cwTicketId, statusId) {
+function updateTicket(cwTicketId, statusId) {
   // don't think this update is working
   // id of the status to change to, find with boards.getBoards and status.getStatuses
 
@@ -409,7 +411,7 @@ app.post('/board-change', async (req, res) => {
       let statusId = matchIdStatusithIdList(req.body.action.data.listAfter.name);
 
       // console.log(statusId);
-      await updateSampleTicket(cwId[1], statusId);
+      await updateTicket(cwId[1], statusId);
       res.status(200).send('board change');
     } else {
       res.status(200).send('board change and not update');
