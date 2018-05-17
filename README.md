@@ -181,3 +181,5 @@ To see heroku logs, `heroku logs --tail`.
 ## Acknowledgments
 
 * Thanks to Jeremy for the idea (and name!) and initial research into APIs
+* Thanks to Realnets for giving me the time to work on this project 
+* Appreciate Wes Bos's [Async/Await talk](https://www.youtube.com/watch?v=9YkUCxvaLEk) that helped with Axios and event-handling
