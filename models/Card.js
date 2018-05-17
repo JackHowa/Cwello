@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
-const mongoDB = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0-8kzdx.mongodb.net/test?retryWrites=false`;
+const mongoDBHostOptions = 'cluster0-8kzdx.mongodb.net/test?retryWrites=false';
+
+const mongoDBCreds = `${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}`;
+
+const mongoDB = `mongodb+srv://${mongoDBCreds}@${mongoDBHostOptions}`;
+
 // Set up default mongoose connection
 // const mongoDB = "mongodb://localhost/my_database";
 

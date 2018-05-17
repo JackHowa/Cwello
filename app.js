@@ -34,7 +34,9 @@ let statusLists = [
     { name: 'Internal Review', idList: '5afa40d124a895225d845db3', cwStatusId: '585' },
     { name: 'Client Review', idList: '5afa40d5d8f556a7a53d7f21', cwStatusId: '543' },
     { name: 'No Longer Needed', idList: '5afa40d8dc9fb52f4897e852', cwStatusId: '544' },
-    { name: 'Resolved', idList: '5afa40da3be986feaace8858', cwStatusId: '521' },];
+    { name: 'Resolved', idList: '5afa40da3be986feaace8858', cwStatusId: '521' }];
+
+let companyName = 'realnets';
 
 // url: https://trello.com/b/l8Qe2St0/cwello-10
 const trelloServiceBoard = '5af5a9c2c93fd3f22b4c71fe';
@@ -80,7 +82,12 @@ function matchListNameithIdList(status) {
 app.use(bodyParser.json());
 
 // cw info
-const cwServiceBoard = 'https://realnets+' + connectWiseApiKey + '@api-na.myconnectwise.net/v4_6_release/apis/3.0/service/tickets?conditions=board/name="Dev Tickets" AND lastUpdated > [2018-05-10T00:00:00Z]';
+let cwTicketRange = 'lastUpdated > [2018-05-10T00:00:00Z]';
+let cwBoard = 'board/name="Dev Tickets"';
+let cwInfo = 'api-na.myconnectwise.net/v4_6_release/apis/3.0';
+let cwQuery = `service/tickets?conditions=${cwBoard} AND ${cwTicketRange}`;
+
+const cwServiceBoard = `https://${companyName}+${connectWiseApiKey}@${cwInfo}/${cwQuery}`;
 
 async function runner() {
   // cosmetic change on the front-end of clearing the board
@@ -124,6 +131,7 @@ async function createWebhook() {
         token: trelloToken,
         active: true,
       });
+
     // console.log("Board web hook " + boardWebhook);
   } catch (err) {
     // console.log('Something went wrong when creating webhook');
@@ -144,8 +152,12 @@ async function run() {
   for (let i = 0; i < tickets.length; i++) {
     const [ticketExists] = await Promise.all([cwTicketAlreadyExists(tickets[i].id)]);
 
-    // just use a default here
-    // moveTrelloCard();
+    // this ticket is coming from connectwise
+    // changedTicked below is from the db
+    const ticket = tickets[i];
+
+    // example: "in progress"
+    const newTicketStatus = ticket.status.name;
 
     // if cw id does exist in the db
     if (ticketExists === true) {
@@ -153,33 +165,40 @@ async function run() {
       console.log('ticket already exists');
 
       // will be renaming these params on the other side to directly match in db
-      const [statusChanged] = await Promise.all([cwTicketStatusChanged(tickets[i].id, tickets[i].status.name)]);
+      // ticket.id is the cw ticket id
+      const statusChangePromise = cwTicketStatusChanged(ticket.id, newTicketStatus);
+
+      const [statusChanged] = await Promise.all([statusChangePromise]);
 
       // if the status for that cw id has changed
       if (statusChanged === true) {
         // need to find the db for matching trello id and db's status
         // update status in the db
-        const [changedTicket] = await Promise.all([updateCardInDb(tickets[i].id, tickets[i].status.name)]);
+
+        const [changedTicket] = await Promise.all([updateCardInDb(ticket.id, newTicketStatus)]);
+
         // console.log(changedTicket.trelloCardId);
         console.log('status change');
 
-        // console.log(tickets[i].status.name);
-
         // then move the card in trello
         // hardcoding moving the change back to open
-        await moveTrelloCard(changedTicket.trelloCardId, tickets[i].status.name);
+        await moveTrelloCard(changedTicket.trelloCardId, newTicketStatus);
       }
     } else {
 
-      console.log(tickets[i].company);
-      console.log(tickets[i]);
+      console.log(ticket.company);
+      console.log(ticket);
 
       // then create that new trello card from cw
+      // make the raw information needed for a new trello card
+      const trelloCardRawInfo = [ticket.id, newTicketStatus, ticket.summary, ticket.company.name];
 
-      const newTrelloCard = await createNewTrelloCard(tickets[i].id, tickets[i].status.name, tickets[i].summary, tickets[i].company.name);
+      // ... will spread the array to pass in the info flat
+      const newTrelloCard = await createNewTrelloCard(...trelloCardRawInfo);
 
       // save to db
-      createCard(newTrelloCard.id, tickets[i].id, tickets[i].status.name);
+      createCard(newTrelloCard.id, ticket.id, newTicketStatus);
+
       // console.log("done making one card");
     }
   }
@@ -250,7 +269,13 @@ async function createNewTrelloCard(cwCardId, status, summary, companyName) {
   let idList = matchListNameithIdList(status);
 
   // entrypoints via cw https://developer.connectwise.com/Manage/Hosted_APIs/URL_Entry_Points
-  let cwEntryPoint = `https://na.myconnectwise.net/v4_6_release/services/system_io/router/openrecord.rails?locale=en_US&recordType=ServiceFv&recid=${cwCardId}&companyName=realnets`;
+  // this is where we get the service ticket url entry
+  // sorry cw has some gross urls
+  const connectWiseURL = 'na.myconnectwise.net';
+  const cwOptionsEntryOptions = 'v4_6_release/services/system_io/router/openrecord.rails';
+  const urlEntryServiceConfigs = `locale=en_US&recordType=ServiceFv&recid=${cwCardId}&companyName=${companyName}`;
+
+  let cwEntryPoint = `https://${connectWiseURL}/${cwOptionsEntryOptions}?${urlEntryServiceConfigs}`;
 
   let trelloCardPromise = axios.post('https://api.trello.com/1/cards', {
       name: `${stringCardId}: ${summary} (${companyName})`,
@@ -295,6 +320,7 @@ async function moveTrelloCard(trelloCardId, status) {
         token: trelloToken,
       });
     await Promise.all([trelloCardPromise]);
+
     // console.log(trelloCard.data);
     console.log('Moved ticket');
   } catch (err) {
@@ -402,4 +428,4 @@ app.get('/board-change', (req, res) => {
 // trello looks for a good callback url
 app.get('/', (req, res) => {
     res.status(200).send('hello');
-});
+  });
