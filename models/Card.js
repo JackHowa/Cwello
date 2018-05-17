@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const mongoDB = `mongodb+srv://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@cluster0-8kzdx.mongodb.net/test?retryWrites=false`;
 // Set up default mongoose connection
@@ -13,7 +13,7 @@ mongoose.Promise = global.Promise;
 let db = mongoose.connection;
 
 // Bind connection to error event (to get notification of connection errors)
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
+db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
 let Schema = mongoose.Schema;
 
@@ -23,11 +23,11 @@ let Schema = mongoose.Schema;
 let cardSchema = new Schema({
     trelloCardId: String,
     cwCardId: String,
-    status: String
-});
+    status: String,
+  });
 
 // convert schema definition into a Model that"s accessible
-let Card = mongoose.model("Card", cardSchema);
+let Card = mongoose.model('Card', cardSchema);
 
 // mongoose.set("debug", true);
 
