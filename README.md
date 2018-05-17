@@ -30,8 +30,6 @@ To start up MongoDB via Homebrew: `mongod --dbpath /usr/local/var/mongodb`.
 
 The app can then be ran via `npm start` on a different terminal window.
 
-Please look at code snippets and progress on -- meta alert -- Trello: [Trello join page](https://trello.com/invite/b/S4Vj9EhG/be3f9aea6c3ce25b1255117d375d8b5c/cwello).
-
 ### API Auth 
 
 Before we start, I utilized a .env file for environment variables. This is not committed. It gets around worrying about accidentally committing a .json file with your keys in it. The module dotenv loads the variable. NOTE: Make sure your code to load these variables `require('dotenv').config();` comes before you try to access one `let trelloKey = process.env.TRELLO_API_KEY`. Here's more of an [explainer](https://medium.com/@thejasonfile/using-dotenv-package-to-create-environment-variables-33da4ac4ea8f).
