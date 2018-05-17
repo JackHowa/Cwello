@@ -379,8 +379,10 @@ const port = process.env.PORT || 3000;
 
 app.listen(port, () => console.log(`Example app listening on port ${port}`));
 
+app.use(require('./routes/index'));
+
 // web hooks for listening for board change
-// this is where ngrok is being forwarded to
+// todo: separate this logic out into a new file
 app.post('/board-change', async (req, res) => {
     console.log('board change');
 
@@ -416,18 +418,4 @@ app.post('/board-change', async (req, res) => {
     } else {
       res.status(200).send('board change and not update');
     }
-  });
-
-// this is to ensure that the webhook can be created
-// trello looks for a good callback url
-app.get('/board-change', (req, res) => {
-    res.status(200).send('board change');
-
-    // console.log("board get");
-  });
-
-// this is to ensure that the webhook can be created
-// trello looks for a good callback url
-app.get('/', (req, res) => {
-    res.status(200).send('hello');
   });
