@@ -14,7 +14,7 @@
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "jscs": "^3.0.7",
-    "mongoose": "^5.1.0"
+    "mongoose": "^5.7.5"
   },
   "repository": {
     "type": "git",
