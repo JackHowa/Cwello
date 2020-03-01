@@ -9,7 +9,7 @@
   "author": "Jack Howard",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "connectwise-rest": "0.0.13",
     "dotenv": "^5.0.1",
     "express": "^4.16.3",
